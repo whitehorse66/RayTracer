@@ -1,3 +1,3 @@
 # Raytracer
 <p>Raytracer with GUI.</p>
-<img src="image2.png">
+<img src="sample.png">
