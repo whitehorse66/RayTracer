@@ -49,15 +49,12 @@ public:
 
 class ThinLensCamera :public Camera {
 public:
-	double a;//イメージセンサーからレンズ中心までの距離
-	double b;//レンズ中心からピントの合う平面までの距離
-	double f;//焦点距離
-	double lensRadius;//レンズの半径
-	Vec3 lensCenter;//レンズの中心位置
+	double a;
+	double b;
+	double f;
+	double lensRadius;
+	Vec3 lensCenter;
 
-	//focusPoint:ポイントの合う位置
-	//_a:aの値
-	//_lensRadius:レンズの半径
 	ThinLensCamera(const Vec3& _camPos, const Vec3& _camForward, const Vec3& focusPoint, double _a, double _lensRadius) :
 		Camera(_camPos, _camForward), a(_a), lensRadius(_lensRadius) {
 		double cos = dot(camForward, normalize(focusPoint - camPos));
@@ -66,14 +63,10 @@ public:
 		lensCenter = camPos + a * camForward;
 	};
 	Ray getRay(double u, double v) const {
-		//イメージセンサー上の点
 		Vec3 sensorPos = camPos + u * camRight + v * camUp;
-		//イメージセンサーからレンズの中心へ向かう方向
 		Vec3 r = normalize(lensCenter - sensorPos);
-		//ピントの合う位置
 		Vec3 pf = sensorPos + (a + b) / dot(camForward, r) * r;
 
-		//レンズの上の点をサンプリング
 		double x, y;
 		sampleDisk(x, y);
 		Vec3 l = lensCenter + lensRadius * (x * camRight + y * camUp);

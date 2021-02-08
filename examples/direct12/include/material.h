@@ -25,11 +25,7 @@ Vec3 reflect(const Vec3& v, const Vec3& n) {
 }
 
 
-//フレネル反射率を返す
-//v: 入射ベクトル
-//n: 法線
-//n1: 入射側屈折率
-//n2: 出射側屈折率
+//retutn fresnel reflectance
 double fresnel(const Vec3& v, const Vec3& n, double n1, double n2) {
     double f0 = std::pow((n1 - n2) / (n1 + n2), 2.0);
     double cos = absCosTheta(v);
@@ -37,24 +33,19 @@ double fresnel(const Vec3& v, const Vec3& n, double n1, double n2) {
 }
 
 
-//屈折方向を計算する
-//全反射が起きた場合はfalseを返す
-//v: 入射ベクトル
-//r: 屈折ベクトル
-//n: 法線
-//n1: 入射側屈折率
-//n2: 出射側屈折率
+//return refraction vector
 bool refract(const Vec3& v, Vec3& r, const Vec3& n, double n1, double n2) {
     double cos = absCosTheta(v);
     double sin = std::sqrt(std::max(1 - cos * cos, 0.0));
     double alpha = n1 / n2 * sin;
 
-    //全反射
-    if (alpha * alpha > 1.0) return false;
-
-    //屈折ベクトル
+    //total internal reflection
+    if (alpha * alpha > 1.0) {
+        return false;
+    }
+    //refraction vector
     r = n1 / n2 * (-v + dot(v, n) * n) - std::sqrt(1 - alpha * alpha) * n;
-
+    
     return true;
 }
 
@@ -114,18 +105,18 @@ public:
 
 class Glass : public Material {
 public:
-    double ior; //屈折率
+    double ior; //refractive index
 
     Glass(double _ior) : ior(_ior) {};
 
     Vec3 sample(const Vec3& wo, Vec3& wi, double& pdf) const {
-        //ガラスに入射しているかのフラグ
-        bool isEntering = cosTheta(wo) > 0;
 
-        //入射と出射で屈折率、法線を入れ替える
-        double n1; //入射側屈折率
-        double n2; //出射側屈折率
-        Vec3 normal; //法線 入射と出射で入れ替える必要がある
+        //if incidenting
+        bool isEntering = cosTheta(wo) > 0;
+        
+        double n1; 
+        double n2; 
+        Vec3 normal; 
         if (isEntering) {
             n1 = 1.0;
             n2 = ior;
@@ -137,22 +128,24 @@ public:
             normal = Vec3(0, -1, 0);
         }
 
-        //フレネル反射率
+        //fresnel reflectance
         double fr = fresnel(wo, normal, n1, n2);
 
-        //反射
+        //reflectance
         if (rnd() < fr) {
             wi = reflect(wo, normal);
             pdf = fr;
             return fr / absCosTheta(wi) * Vec3(1);
         }
-        //屈折
+
+        //refraction
         else {
             if (refract(wo, wi, normal, n1, n2)) {
                 pdf = 1 - fr;
+                //refrantance brdf
                 return std::pow(n1 / n2, 2.0) * (1 - fr) / absCosTheta(wi) * Vec3(1);
             }
-            //全反射
+            //Total internal reflection
             else {
                 wi = reflect(wo, normal);
                 pdf = 1 - fr;

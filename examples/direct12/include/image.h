@@ -71,6 +71,14 @@ public:
 				int r = clamp(int(255 * c.x), 0, 255);
 				int g = clamp(int(255 * c.y), 0, 255);
 				int b = clamp(int(255 * c.z), 0, 255);
+
+				//DoEvents
+				//MSG msg;
+				//if (::PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
+				//	::TranslateMessage(&msg);
+				//	::DispatchMessage(&msg);
+				//}
+
 				file << r << " " << g << " " << b << std::endl;
 			}
 		}
